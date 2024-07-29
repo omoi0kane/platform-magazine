@@ -23,5 +23,5 @@ https://github.com/omoi0kane/platform-magazine?tab=License-1-ov-file
 ただし本データの販売、印刷、および内容を変更した状態で再配布することを禁じます。内容を変更しない場合に限り、再配布が許可されます。
 
 ## お問い合わせ先
-Platform編集部　https://x.com/PlatformVR
-思惟かね　https://x.com/omoi0kane
+Platform編集部　https://x.com/PlatformVR  
+思惟かね　https://x.com/omoi0kane  
