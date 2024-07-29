@@ -17,8 +17,9 @@ https://tsukina-7mochi.github.io/udon-magazine/
 
 
 ## 注意事項
-利用規約に同意いただける場合のみご利用ください。https://github.com/omoi0kane/platform-magazine?tab=License-1-ov-file
-本データはVRChat等のワールドに設置し、再頒布されることを想定し、これを許可しています。
+利用規約に同意いただける場合のみご利用ください。  
+https://github.com/omoi0kane/platform-magazine?tab=License-1-ov-file  
+本データはVRChat等のワールドに設置し、再頒布されることを想定し、これを許可しています。  
 ただし本データの販売、印刷、および内容を変更した状態で再配布することを禁じます。内容を変更しない場合に限り、再配布が許可されます。
 
 ## お問い合わせ先
