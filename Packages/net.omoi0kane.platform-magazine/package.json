@@ -6,7 +6,7 @@
   "dependencies": {},
   "gitDependencies": {},
   "vpmDependencies": {
-    "com.vrchat.worlds": ">=3.5.0,
+    "com.vrchat.worlds": ">=3.5.0",
     "net.ts7m.udon-magazine": ">=0.1.5"
   },
   "author": {

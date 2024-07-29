@@ -230,12 +230,6 @@
         "com.unity.ai.navigation": "1.1.5"
       }
     },
-    "net.omoi0kane.platform-magazine": {
-      "version": "file:net.omoi0kane.platform-magazine",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
-    },
     "net.ts7m.udon-magazine": {
       "version": "file:net.ts7m.udon-magazine",
       "depth": 0,
