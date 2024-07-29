@@ -15,6 +15,9 @@ https://omoi0kane.github.io/platform-magazine/
 なお動作にはUdon Magazineパッケージが必要です。以下のページよりVCCのリポジトリへ追加してください。  
 https://tsukina-7mochi.github.io/udon-magazine/
 
+導入後、UnityのProject Managerから【Platform_】で検索し、各号のPrefabをHierarchyに配置してください。
+![image](https://github.com/user-attachments/assets/2e1d7550-37e1-4481-8d94-bc6aa90ef145)
+
 
 ## 注意事項
 利用規約に同意いただける場合のみご利用ください。  
