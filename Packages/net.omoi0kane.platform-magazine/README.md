@@ -1,0 +1,1 @@
+# net.omoi0kane.platform-magazine by ikds1

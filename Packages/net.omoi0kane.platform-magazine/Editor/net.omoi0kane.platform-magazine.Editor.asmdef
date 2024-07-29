@@ -1,0 +1,14 @@
+{
+  "name": "net.omoi0kane.platform-magazine.Editor",
+  "references": [
+    "net.omoi0kane.platform-magazine"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "autoReferenced": true,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "defineConstraints": [],
+  "optionalUnityReferences": []
+}

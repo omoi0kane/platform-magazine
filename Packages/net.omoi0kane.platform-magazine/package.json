@@ -1,0 +1,19 @@
+{
+  "name": "net.omoi0kane.platform-magazine",
+  "displayName": "Platform Magazine",
+  "version": "0.0.1",
+  "description": "メタバース写真旅行雑誌『Platform』のvpm頒布版です",
+  "dependencies": {},
+  "gitDependencies": {},
+  "vpmDependencies": {
+    "com.vrchat.worlds": ">=3.5.0,
+    "net.ts7m.udon-magazine": ">=0.1.5"
+  },
+  "author": {
+    "name": "Omoi Kane",
+    "email": "omoi0kane@gmail.com",
+    "url": "https://omoi0kane.github.io/platform-magazine/"
+  },
+  "legacyFolders": {},
+  "legacyFiles": {}, 
+}
