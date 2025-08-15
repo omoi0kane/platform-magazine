@@ -1,8 +1,8 @@
 {
   "name": "net.omoi0kane.platform-magazine",
   "displayName": "Platform Magazine",
-  "version": "0.0.7",
-  "description": "テストバージョン。Prefab有効/無効の設定ミス修正、Crunch Compression追加、README更新など軽微な修正。",
+  "version": "0.0.8",
+  "description": "Crunch Compressionに代わりDDS化のテスト。",
   "dependencies": {},
   "gitDependencies": {},
   "vpmDependencies": {
