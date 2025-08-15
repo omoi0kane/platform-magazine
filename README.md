@@ -18,11 +18,14 @@ https://omoi0kane.github.io/platform-magazine/
 https://tsukina-7mochi.github.io/udon-magazine/
 
 導入後、UnityのProject Managerから【Platform_】で「Package」内を検索し、お目当ての号のPrefabをHierarchyに配置してください。
+最新号を置いておきたい場合はlatest.prefabを配置してください。
 ![image](https://github.com/user-attachments/assets/2e1d7550-37e1-4481-8d94-bc6aa90ef145)
 
 
 ## 注意点
-* 最初のインポート時は軽量化のためのCrunch Compression処理が走るため、少し時間がかかります。ご承知おきください
+* ダウンロードサイズが大きいので注意してください。初回はファイル数が多く時間がかかりますが、2回目以降は早いはず
+* ALCOMでアップデートすると「破壊的変更が～」という注意書きが出ますが気にしなくてOKです
+* ~~最初のインポート時は軽量化のためのCrunch Compression処理が走るため、少し時間がかかります。ご承知おきください~~ 現在解消方向に向け努力中
 
 ## 利用規約
 利用規約に同意いただける場合のみご利用ください。  
