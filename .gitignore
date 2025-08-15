@@ -63,3 +63,4 @@ crashlytics-build.properties
 Assets/PackageMakerWindowData.asset*
 .idea
 .vscode
+-e "UserSettings/\nClientSimStorage/" 
