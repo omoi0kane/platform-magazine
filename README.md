@@ -3,7 +3,7 @@
 * 今後、破壊的変更がある可能性があります。あらかじめご了承ください
 
 # メタバース写真旅行雑誌『Platform』VPM版
-https://platformvr.github.io/
+公式HP：https://platformvr.github.io/
 
 当ページは本誌をVRChatワールド内に手軽に設置・ご覧いただけるよう、VCC (VRChat Creator Companion)により頒布するものです。
 * 本誌の最新号や新版がアップデートにより自動で配信されます
