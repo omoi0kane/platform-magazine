@@ -1,8 +1,8 @@
 {
   "name": "net.omoi0kane.platform-magazine",
   "displayName": "Platform Magazine",
-  "version": "0.0.6",
-  "description": "LatestをVol.15に更新。配信テスト最終バージョン",
+  "version": "0.0.7",
+  "description": "テストバージョン。Prefab有効/無効の設定ミス修正、Crunch Compression追加、README更新など軽微な修正。",
   "dependencies": {},
   "gitDependencies": {},
   "vpmDependencies": {
