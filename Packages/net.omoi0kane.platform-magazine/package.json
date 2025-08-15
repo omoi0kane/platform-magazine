@@ -1,8 +1,8 @@
 {
   "name": "net.omoi0kane.platform-magazine",
   "displayName": "Platform Magazine",
-  "version": "0.0.2",
-  "description": "メタバース写真旅行雑誌『Platform』のvpm頒布版です",
+  "version": "0.0.3",
+  "description": "VRC SDK 3.8.2 & UM 0.2.0対応テストバージョン。",
   "dependencies": {},
   "gitDependencies": {},
   "vpmDependencies": {
