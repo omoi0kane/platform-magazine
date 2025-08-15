@@ -1,5 +1,6 @@
-# ◆本パッケージはリリース前のテスト中です◆
+# ◆本パッケージは仮リリース中です◆
 * 現在、Vol.1-2（暫定版）、Vol.8-15および2023特別号、2024特別号（正式版）を公開しています
+* 今後、破壊的変更がある可能性があります。あらかじめご了承ください
 
 # メタバース写真旅行雑誌『Platform』VPM版
 https://platformvr.github.io/
@@ -20,7 +21,10 @@ https://tsukina-7mochi.github.io/udon-magazine/
 ![image](https://github.com/user-attachments/assets/2e1d7550-37e1-4481-8d94-bc6aa90ef145)
 
 
-## 注意事項
+## 注意点
+* 最初のインポート時は軽量化のためのCrunch Compression処理が走るため、少し時間がかかります。ご承知おきください
+
+## 利用規約
 利用規約に同意いただける場合のみご利用ください。  
 https://github.com/omoi0kane/platform-magazine?tab=License-1-ov-file  
 本データはVRChat等のワールドに設置し、再頒布されることを想定し、これを許可しています。  
