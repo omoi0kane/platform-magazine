@@ -2,6 +2,7 @@
 * 現在、Vol.1-2（暫定版）、Vol.8-15および2023特別号、2024特別号（正式版）を公開しています
 
 # メタバース写真旅行雑誌『Platform』VPM版
+https://platformvr.github.io/
 
 当ページは本誌をVRChatワールド内に手軽に設置・ご覧いただけるよう、VCC (VRChat Creator Companion)により頒布するものです。
 * 本誌の最新号や新版がアップデートにより自動で配信されます
