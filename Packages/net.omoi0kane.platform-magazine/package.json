@@ -1,8 +1,8 @@
 {
   "name": "net.omoi0kane.platform-magazine",
   "displayName": "Platform Magazine",
-  "version": "0.0.4",
-  "description": "Vol.2・24sp追加テストバージョン",
+  "version": "0.0.5",
+  "description": "Latestパッケージ配信テストバージョン",
   "dependencies": {},
   "gitDependencies": {},
   "vpmDependencies": {
