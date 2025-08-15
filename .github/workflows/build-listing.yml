@@ -49,12 +49,14 @@ jobs:
 
       # Load cached data from previous runs
       - name: Restore Cache
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84
+        uses: actions/cache@v4
         with:
           path: |
             ${{ env.pathToCi }}/.nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-      
       
       # Build Package Version Listing with Nuke
       - name: Build Package Version Listing
