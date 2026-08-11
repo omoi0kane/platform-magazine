@@ -64,7 +64,7 @@ def test_prepare_rejects_destination_that_contains_source(tmp_path: Path) -> Non
     assert source.is_file()
 
 
-def test_pdf_affinity_order_includes_back_cover_and_adds_blank_filler(tmp_path: Path) -> None:
+def test_pdf_affinity_order_builds_cover_atlas_and_orders_only_interior(tmp_path: Path) -> None:
     pdf = tmp_path / "book.pdf"
     doc = pymupdf.open()
     gray_levels = [0.08, 0.20, 0.32, 0.44, 0.56, 0.68]
@@ -76,12 +76,20 @@ def test_pdf_affinity_order_includes_back_cover_and_adds_blank_filler(tmp_path: 
         pdf, tmp_path / "prepared", max_dimension=120, quality=95,
         page_order="affinity_spreads", back_cover=True,
     )
+    assert Image.open(pages[0]).size == (200, 120)
+    cover_left_pixel = Image.open(pages[0]).getpixel((50, 60))
+    cover_right_pixel = Image.open(pages[0]).getpixel((150, 60))
+    cover_left = cover_left_pixel[0] if isinstance(cover_left_pixel, tuple) else cover_left_pixel
+    cover_right = cover_right_pixel[0] if isinstance(cover_right_pixel, tuple) else cover_right_pixel
+    assert isinstance(cover_left, (int, float)) and isinstance(cover_right, (int, float))
+    assert abs(cover_left - round(gray_levels[0] * 255)) <= 3
+    assert abs(cover_right - round(gray_levels[5] * 255)) <= 3
     observed = []
-    for page in pages:
+    for page in pages[1:]:
         pixel = Image.open(page).getpixel((50, 60))
         observed.append(pixel[0] if isinstance(pixel, tuple) else pixel)
-    expected = [round(gray_levels[index] * 255) for index in (0, 2, 1, 4, 3, 5)] + [255]
-    assert len(observed) == 7
+    expected = [round(gray_levels[index] * 255) for index in (2, 1, 4, 3)]
+    assert len(pages) == 5
     assert all(abs(actual - wanted) <= 3 for actual, wanted in zip(observed, expected, strict=True))
 
 

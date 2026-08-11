@@ -90,15 +90,12 @@ def test_image_source_requires_explicit_cover(tmp_path: Path) -> None:
         load_manifest(write_manifest(tmp_path, data))
 
 
-def test_build_pads_odd_udon_content_page_count_with_blank(tmp_path: Path) -> None:
+def test_build_rejects_odd_udon_content_page_count(tmp_path: Path) -> None:
     source = tmp_path / "pages"
     sample_images(source)
     (source / "page3.jpg").unlink()
-    result = build(write_manifest(tmp_path, manifest_data(source, tmp_path / "out")))
-    pages = sorted((result.volume.package_dir / "Runtime/pages").glob("page_*.jpg"))
-    assert len(pages) == 4
-    with Image.open(pages[-1]) as filler:
-        assert filler.getpixel((10, 10)) == (255, 255, 255)
+    with pytest.raises(ValidationError, match="even number of content pages"):
+        build(write_manifest(tmp_path, manifest_data(source, tmp_path / "out")))
 
 
 def test_output_must_not_contain_source_or_manifest(tmp_path: Path) -> None:

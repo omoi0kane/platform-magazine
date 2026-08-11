@@ -26,8 +26,7 @@ def pdf_source_page_order(page_count: int, page_order: str, back_cover: bool) ->
         body = [page for index in range(0, len(body), 2) for page in body[index:index + 2][::-1]]
     elif page_order != "natural":
         raise InputError("PDF sources support natural or affinity_spreads page order")
-    back = [page_count - 1] if back_cover else []
-    return [0, *body, *back]
+    return [0, *body]
 
 
 def _save_jpeg(image: Image.Image, destination: Path, max_dimension: int, quality: int) -> None:
@@ -40,17 +39,22 @@ def _save_jpeg(image: Image.Image, destination: Path, max_dimension: int, qualit
     )
 
 
-def pad_odd_content_with_blank(
-    pages: list[Path], max_dimension: int, quality: int,
-) -> list[Path]:
-    """Append one deterministic white page when Udon's content array would be odd."""
-    if not pages or (len(pages) - 1) % 2 == 0:
-        return pages
-    with Image.open(pages[-1]) as reference:
-        blank = Image.new("RGB", reference.size, "white")
-    destination = pages[-1].parent / f"page_{len(pages) + 1:03d}.jpg"
-    _save_jpeg(blank, destination, max_dimension, quality)
-    return [*pages, destination]
+def _render_pdf_page(page: pymupdf.Page, max_dimension: int) -> Image.Image:
+    longest = max(page.rect.width, page.rect.height)
+    scale = max_dimension / longest if longest else 1.0
+    pixmap = page.get_pixmap(
+        matrix=pymupdf.Matrix(scale, scale), alpha=False, colorspace=pymupdf.csRGB
+    )
+    return Image.frombytes("RGB", (pixmap.width, pixmap.height), pixmap.samples)
+
+
+def _cover_atlas(front: Image.Image, back: Image.Image) -> Image.Image:
+    """Match existing Platform assets: front on the left, back on the right."""
+    height = max(front.height, back.height)
+    atlas = Image.new("RGB", (front.width + back.width, height), "white")
+    atlas.paste(front, (0, (height - front.height) // 2))
+    atlas.paste(back, (front.width, (height - back.height) // 2))
+    return atlas
 
 
 def prepare(
@@ -102,12 +106,19 @@ def prepare(
                 if document.page_count == 0:
                     raise InputError(f"PDF has no pages: {source}")
                 source_pages = pdf_source_page_order(document.page_count, page_order, back_cover)
-                for index, source_index in enumerate(source_pages, 1):
-                    page = document[source_index]
-                    longest = max(page.rect.width, page.rect.height)
-                    scale = max_dimension / longest if longest else 1.0
-                    pixmap = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False, colorspace=pymupdf.csRGB)
-                    image = Image.frombytes("RGB", (pixmap.width, pixmap.height), pixmap.samples)
+                if back_cover:
+                    front = _render_pdf_page(document[0], max_dimension)
+                    back = _render_pdf_page(document[-1], max_dimension)
+                    _save_jpeg(
+                        _cover_atlas(front, back), destination / "page_001.jpg",
+                        max_dimension * 2, quality,
+                    )
+                    source_pages = source_pages[1:]
+                    start = 2
+                else:
+                    start = 1
+                for index, source_index in enumerate(source_pages, start):
+                    image = _render_pdf_page(document[source_index], max_dimension)
                     _save_jpeg(image, destination / f"page_{index:03d}.jpg", max_dimension, quality)
             finally:
                 document.close()
@@ -119,5 +130,4 @@ def prepare(
             raise InputError(f"source must be a PDF or image directory: {source}")
     except (OSError, pymupdf.FileDataError) as exc:
         raise InputError(f"cannot prepare source {source}: {exc}") from exc
-    pages = sorted(destination.glob("page_*.jpg"))
-    return pad_odd_content_with_blank(pages, max_dimension, quality) if back_cover else pages
+    return sorted(destination.glob("page_*.jpg"))
