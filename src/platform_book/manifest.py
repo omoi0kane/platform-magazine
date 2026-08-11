@@ -22,6 +22,7 @@ class Manifest:
     source_path: Path
     source_type: str
     source_cover: str | None
+    source_back_cover: bool
     page_order: str
     explicit_pages: tuple[str, ...]
     output_directory: Path
@@ -77,7 +78,7 @@ def load_manifest(path: Path | str) -> Manifest:
     source = _mapping(data["source"], "source")
     output = _mapping(data["output"], "output")
     rights = _mapping(data["rights"], "rights")
-    _reject_unknown(source, {"path", "type", "cover", "page_order", "pages"}, "source")
+    _reject_unknown(source, {"path", "type", "cover", "back_cover", "page_order", "pages"}, "source")
     _reject_unknown(
         output,
         {"directory", "version", "latest_version", "latest_id", "target_name", "max_dimension", "jpeg_quality",
@@ -106,6 +107,9 @@ def load_manifest(path: Path | str) -> Manifest:
         raise ManifestError("source.cover must be a non-empty relative filename")
     if source_cover is not None and (Path(source_cover).is_absolute() or ".." in Path(source_cover).parts):
         raise ManifestError("source.cover must stay inside the source directory")
+    source_back_cover = source.get("back_cover", False)
+    if not isinstance(source_back_cover, bool):
+        raise ManifestError("source.back_cover must be true or false")
     page_order = source.get("page_order", "natural")
     if page_order not in {"natural", "affinity_spreads", "explicit"}:
         raise ManifestError("source.page_order must be one of: natural, affinity_spreads, explicit")
@@ -154,8 +158,10 @@ def load_manifest(path: Path | str) -> Manifest:
     actual_pdf = source_path.is_file() and source_path.suffix.casefold() == ".pdf"
     if (source_type == "images" or (source_type == "auto" and actual_images)) and source_cover is None:
         raise ManifestError("source.cover is required for an image directory")
-    if (source_type == "pdf" or (source_type == "auto" and actual_pdf)) and page_order != "natural":
-        raise ManifestError("PDF sources support only source.page_order: natural")
+    if (source_type == "pdf" or (source_type == "auto" and actual_pdf)) and page_order == "explicit":
+        raise ManifestError("PDF sources support natural or affinity_spreads page order")
+    if (source_type == "images" or (source_type == "auto" and actual_images)) and source_back_cover:
+        raise ManifestError("source.back_cover is currently supported only for PDF sources")
 
     latest_id = output.get("latest_id", package_id.rsplit(".", 1)[0] + ".latest")
     if not isinstance(latest_id, str) or not _ID.fullmatch(latest_id) or latest_id == package_id:
@@ -170,6 +176,7 @@ def load_manifest(path: Path | str) -> Manifest:
     return Manifest(
         id=package_id, title=data["title"].strip(), author=data["author"].strip(),
         source_path=source_path, source_type=source_type, source_cover=source_cover,
+        source_back_cover=source_back_cover,
         page_order=page_order, explicit_pages=tuple(raw_pages), output_directory=output_path,
         version=version, latest_version=latest_version, latest_id=latest_id, target_name=target_name.strip(),
         max_dimension=integer("max_dimension", 2048, 64),

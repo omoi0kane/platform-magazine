@@ -35,11 +35,14 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "prepare":
             manifest = load_manifest(args.manifest)
-            destination = args.destination or manifest.output_directory / "prepared-pages"
+            destination = args.destination or manifest.output_directory.with_name(
+                f"{manifest.output_directory.name}-prepared-pages"
+            )
             pages = prepare(
                 manifest.source_path, destination, manifest.max_dimension,
                 manifest.jpeg_quality, manifest.source_type, manifest.source_cover,
                 manifest.page_order, manifest.explicit_pages,
+                manifest.source_back_cover,
             )
             print(f"prepared {len(pages)} pages in {destination}")
         elif args.command == "build":

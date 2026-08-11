@@ -7,6 +7,7 @@ import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
+import pymupdf
 import yaml
 from PIL import Image, ImageDraw, ImageOps
 
@@ -14,7 +15,7 @@ from .errors import ValidationError
 from .guid import unity_guid
 from .inputs import order_book_images
 from .manifest import Manifest, load_manifest
-from .prepare import prepare
+from .prepare import pdf_source_page_order, prepare
 from .verify import Verification, verify_package
 from .ziputil import deterministic_zip
 
@@ -315,7 +316,10 @@ def build(manifest_path: Path | str) -> BuildResult:
         manifest.source_path, output / ".prepared", manifest.max_dimension,
         manifest.jpeg_quality, manifest.source_type, manifest.source_cover,
         manifest.page_order, manifest.explicit_pages,
+        manifest.source_back_cover,
     )
+    if (len(prepared) - 1) % 2:
+        raise ValidationError("Udon Magazine requires an even number of content pages")
     volume = _build_product(manifest, manifest.id, manifest.version, manifest.target_name, prepared)
     latest = _build_product(
         manifest, manifest.latest_id, manifest.latest_version, f"{manifest.target_name}_latest", prepared
@@ -334,7 +338,11 @@ def build(manifest_path: Path | str) -> BuildResult:
             digest.update(path.name.encode("utf-8") + b"\0" + path.read_bytes())
         source_sha256 = digest.hexdigest()
     else:
-        source_order = [f"PDF page {index}" for index in range(2, len(prepared) + 1)]
+        with pymupdf.open(manifest.source_path) as document:
+            ordered_pdf_pages = pdf_source_page_order(
+                document.page_count, manifest.page_order, manifest.source_back_cover
+            )
+        source_order = [f"PDF page {index + 1}" for index in ordered_pdf_pages[1:]]
         source_sha256 = hashlib.sha256(manifest.source_path.read_bytes()).hexdigest()
     resolved = {
         **manifest.raw,

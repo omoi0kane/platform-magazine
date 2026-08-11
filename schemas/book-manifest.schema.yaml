@@ -15,6 +15,7 @@ properties:
       path: {type: string, minLength: 1}
       type: {enum: [auto, pdf, images]}
       cover: {type: string, minLength: 1}
+      back_cover: {type: boolean}
       page_order: {enum: [natural, affinity_spreads, explicit]}
       pages:
         type: array
