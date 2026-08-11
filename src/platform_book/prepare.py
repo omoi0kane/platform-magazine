@@ -16,14 +16,18 @@ def pdf_source_page_order(page_count: int, page_order: str, back_cover: bool) ->
     """Return zero-based PDF pages in Udon order, with the front cover first."""
     if page_count < 1:
         raise InputError("PDF has no pages")
-    body = list(range(1, page_count - (1 if back_cover else 0)))
+    if back_cover and page_count < 2:
+        raise InputError("PDF cannot use the front cover as its back cover")
+    body_end = page_count - 1 if back_cover else page_count
+    body = list(range(1, body_end))
     if page_order == "affinity_spreads":
         if len(body) % 2:
             raise InputError("affinity_spreads requires an even number of interior PDF pages")
         body = [page for index in range(0, len(body), 2) for page in body[index:index + 2][::-1]]
     elif page_order != "natural":
         raise InputError("PDF sources support natural or affinity_spreads page order")
-    return [0, *body]
+    back = [page_count - 1] if back_cover else []
+    return [0, *body, *back]
 
 
 def _save_jpeg(image: Image.Image, destination: Path, max_dimension: int, quality: int) -> None:
@@ -34,6 +38,19 @@ def _save_jpeg(image: Image.Image, destination: Path, max_dimension: int, qualit
         destination, "JPEG", quality=quality, optimize=False, progressive=False,
         subsampling=2, dpi=(72, 72), exif=b"",
     )
+
+
+def pad_odd_content_with_blank(
+    pages: list[Path], max_dimension: int, quality: int,
+) -> list[Path]:
+    """Append one deterministic white page when Udon's content array would be odd."""
+    if not pages or (len(pages) - 1) % 2 == 0:
+        return pages
+    with Image.open(pages[-1]) as reference:
+        blank = Image.new("RGB", reference.size, "white")
+    destination = pages[-1].parent / f"page_{len(pages) + 1:03d}.jpg"
+    _save_jpeg(blank, destination, max_dimension, quality)
+    return [*pages, destination]
 
 
 def prepare(
@@ -102,4 +119,5 @@ def prepare(
             raise InputError(f"source must be a PDF or image directory: {source}")
     except (OSError, pymupdf.FileDataError) as exc:
         raise InputError(f"cannot prepare source {source}: {exc}") from exc
-    return sorted(destination.glob("page_*.jpg"))
+    pages = sorted(destination.glob("page_*.jpg"))
+    return pad_odd_content_with_blank(pages, max_dimension, quality) if back_cover else pages
