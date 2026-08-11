@@ -46,6 +46,8 @@ def verify_package(package_dir: Path | str, zip_path: Path | str | None = None) 
     expected = [f"page_{index:03d}.jpg" for index in range(1, len(pages) + 1)]
     if not pages or [p.name for p in pages] != expected:
         _fail("page continuity failed; expected page_001.jpg through the final page")
+    if len(pages) % 2:
+        _fail("Udon Magazine requires an even number of content pages")
     forbidden = [p for p in root.rglob("*") if p.is_file() and p.suffix.casefold() in {".pdf", ".png", ".jpeg"}]
     if forbidden:
         _fail(f"original/source file type found in package: {forbidden[0].relative_to(root)}")

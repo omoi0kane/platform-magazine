@@ -10,6 +10,8 @@ This zero-base pipeline turns a rights-approved PDF or ordered PNG/JPEG director
 
 The source is treated as read-only. Generated pages are JPEG, preserve aspect ratio, and use manifest-controlled `max_dimension` and `jpeg_quality`. For an image directory, declare the cover explicitly. `affinity_spreads` converts Affinity Publisher's `2,3,4,5...` files into Udon Magazine's historical `3,2,5,4...` content order; `explicit` accepts an exact filename list. The cover is used only by the cover material and is excluded from `pageTextures`.
 
+For a PDF exported as front cover, interior pages, and back cover, set `source.back_cover: true`. The final PDF page is then excluded because Udon Magazine uses the cover material for the closed book and requires an even `pageTextures` array. With `page_order: affinity_spreads`, only the interior is reordered (`3,2,5,4...`); both covers remain outside that spread pairing.
+
 Use separate versions for the two products. A fixed issue normally begins at `output.version: 1.0.0`. The shared `latest` package must advance for every issue, for example `output.latest_version: 16.0.0` for Vol.16 and `17.0.0` for Vol.17.
 
 ## Commands
@@ -24,7 +26,7 @@ uv run platform-book stage-release examples/book.yaml --target <merged-commit-sh
 uv run pytest
 ```
 
-`prepare` creates reviewable normalized pages. `build` recreates only the manifest's output directory, then creates:
+`prepare` creates reviewable normalized pages in a sibling `<output>-prepared-pages` directory by default. Keeping this outside the build output allows the documented `prepare` → `build` sequence without mixing review files into managed artifacts. `build` recreates only the manifest's output directory, then creates:
 
 - `packages/<volume-id>/` and its deterministic ZIP;
 - `packages/<latest-id>/` and its deterministic ZIP;

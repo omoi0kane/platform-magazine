@@ -8,6 +8,7 @@ import pytest
 import yaml
 from PIL import Image
 
+from platform_book.cli import main
 from platform_book.errors import InputError
 from platform_book.prepare import prepare
 
@@ -63,13 +64,25 @@ def test_prepare_rejects_destination_that_contains_source(tmp_path: Path) -> Non
     assert source.is_file()
 
 
-def test_pdf_rejects_non_natural_page_order(tmp_path: Path) -> None:
+def test_pdf_affinity_order_swaps_interior_spreads_and_omits_back_cover(tmp_path: Path) -> None:
     pdf = tmp_path / "book.pdf"
     doc = pymupdf.open()
-    doc.new_page()
+    gray_levels = [0.08, 0.20, 0.32, 0.44, 0.56, 0.68]
+    for gray in gray_levels:
+        page = doc.new_page(width=100, height=120)
+        page.draw_rect(page.rect, color=(gray, gray, gray), fill=(gray, gray, gray))
     doc.save(pdf)
-    with pytest.raises(InputError, match="PDF.*natural"):
-        prepare(pdf, tmp_path / "prepared", page_order="affinity_spreads")
+    pages = prepare(
+        pdf, tmp_path / "prepared", max_dimension=120, quality=95,
+        page_order="affinity_spreads", back_cover=True,
+    )
+    observed = []
+    for page in pages:
+        pixel = Image.open(page).getpixel((50, 60))
+        observed.append(pixel[0] if isinstance(pixel, tuple) else pixel)
+    expected = [round(gray_levels[index] * 255) for index in (0, 2, 1, 4, 3)]
+    assert len(observed) == 5
+    assert all(abs(actual - wanted) <= 3 for actual, wanted in zip(observed, expected, strict=True))
 
 
 def test_cli_reports_manifest_errors_cleanly(tmp_path: Path) -> None:
@@ -81,3 +94,29 @@ def test_cli_reports_manifest_errors_cleanly(tmp_path: Path) -> None:
     assert result.returncode == 2
     assert "error:" in result.stderr
     assert "Traceback" not in result.stderr
+
+
+def test_cli_prepare_then_build_uses_separate_review_directory(tmp_path: Path) -> None:
+    pdf = tmp_path / "book.pdf"
+    doc = pymupdf.open()
+    doc.new_page(width=300, height=400)
+    doc.new_page(width=300, height=400)
+    doc.new_page(width=300, height=400)
+    doc.save(pdf)
+    output = tmp_path / "dist"
+    manifest = tmp_path / "book.yaml"
+    manifest.write_text(yaml.safe_dump({
+        "id": "net.example.book.vol1", "title": "Book", "author": "Author",
+        "source": {"path": str(pdf), "type": "pdf", "page_order": "natural"},
+        "output": {
+            "directory": str(output), "version": "1.0.0", "latest_version": "1.0.0",
+            "latest_id": "net.example.book.latest", "target_name": "Book_vol1",
+        },
+        "rights": {"redistribution_approved": True, "statement": "test fixture"},
+    }), encoding="utf-8")
+
+    assert main(["prepare", str(manifest)]) == 0
+    assert (tmp_path / "dist-prepared-pages" / "page_001.jpg").is_file()
+    assert not output.exists()
+    assert main(["build", str(manifest)]) == 0
+    assert (output / "zips" / "net.example.book.vol1-1.0.0.zip").is_file()

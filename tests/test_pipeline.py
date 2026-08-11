@@ -50,6 +50,7 @@ def sample_images(path: Path) -> list[Path]:
         ("cover.png", (1200, 600), "white"),
         ("page10.png", (900, 600), "blue"),
         ("page2.jpg", (300, 700), "green"),
+        ("page3.jpg", (300, 700), "yellow"),
         ("page1.png", (1200, 800), "red"),
     ]:
         Image.new("RGB", size, color).save(path / name)
@@ -58,7 +59,9 @@ def sample_images(path: Path) -> list[Path]:
 
 def test_natural_image_order(tmp_path: Path) -> None:
     images = sample_images(tmp_path / "pages")
-    assert [p.name for p in images] == ["cover.png", "page1.png", "page2.jpg", "page10.png"]
+    assert [p.name for p in images] == [
+        "cover.png", "page1.png", "page2.jpg", "page3.jpg", "page10.png"
+    ]
 
 
 def test_guid_is_deterministic_32_hex() -> None:
@@ -85,6 +88,14 @@ def test_image_source_requires_explicit_cover(tmp_path: Path) -> None:
     del data["source"]["cover"]
     with pytest.raises(ManifestError, match="source.cover"):
         load_manifest(write_manifest(tmp_path, data))
+
+
+def test_build_rejects_odd_udon_content_page_count(tmp_path: Path) -> None:
+    source = tmp_path / "pages"
+    sample_images(source)
+    (source / "page3.jpg").unlink()
+    with pytest.raises(ValidationError, match="even number of content pages"):
+        build(write_manifest(tmp_path, manifest_data(source, tmp_path / "out")))
 
 
 def test_output_must_not_contain_source_or_manifest(tmp_path: Path) -> None:
@@ -138,7 +149,7 @@ def test_build_images_produces_self_contained_active_packages_and_artifacts(tmp_
         prefab = next((product.package_dir / "Runtime").glob("*.prefab")).read_text()
         assert "m_IsActive: 1" in prefab
         assert "  pageTextures:\n" in prefab
-        assert prefab.count("- {fileID: 2800000, guid:") == 3
+        assert prefab.count("- {fileID: 2800000, guid:") == 4
         assert "Platform Vol.16" in prefab
         assert "Platform Editors" in prefab
         material = next((product.package_dir / "Runtime/materials").glob("*.mat")).read_text()

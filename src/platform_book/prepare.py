@@ -12,6 +12,20 @@ from .inputs import order_book_images
 _PREPARED_MARKER = ".platform-book-prepared"
 
 
+def pdf_source_page_order(page_count: int, page_order: str, back_cover: bool) -> list[int]:
+    """Return zero-based PDF pages in Udon order, with the front cover first."""
+    if page_count < 1:
+        raise InputError("PDF has no pages")
+    body = list(range(1, page_count - (1 if back_cover else 0)))
+    if page_order == "affinity_spreads":
+        if len(body) % 2:
+            raise InputError("affinity_spreads requires an even number of interior PDF pages")
+        body = [page for index in range(0, len(body), 2) for page in body[index:index + 2][::-1]]
+    elif page_order != "natural":
+        raise InputError("PDF sources support natural or affinity_spreads page order")
+    return [0, *body]
+
+
 def _save_jpeg(image: Image.Image, destination: Path, max_dimension: int, quality: int) -> None:
     image = ImageOps.exif_transpose(image).convert("RGB")
     if max(image.size) > max_dimension:
@@ -31,6 +45,7 @@ def prepare(
     cover: str | None = None,
     page_order: str = "natural",
     explicit_pages: tuple[str, ...] = (),
+    back_cover: bool = False,
 ) -> list[Path]:
     """Render/copy normalized pages without ever writing to the original source."""
     source, destination = Path(source).resolve(), Path(destination).resolve()
@@ -44,8 +59,8 @@ def prepare(
         raise InputError(f"source.type is images but path is not a directory: {source}")
     if source_type not in {"auto", "pdf", "images"}:
         raise InputError(f"unsupported source type: {source_type}")
-    if is_pdf and page_order != "natural":
-        raise InputError("PDF sources support only natural page order")
+    if is_pdf and page_order == "explicit":
+        raise InputError("PDF sources support natural or affinity_spreads page order")
     if is_images and cover is None:
         raise InputError("source.cover is required for an image directory")
     if destination == source or source in destination.parents:
@@ -69,7 +84,9 @@ def prepare(
             try:
                 if document.page_count == 0:
                     raise InputError(f"PDF has no pages: {source}")
-                for index, page in enumerate(document, 1):
+                source_pages = pdf_source_page_order(document.page_count, page_order, back_cover)
+                for index, source_index in enumerate(source_pages, 1):
+                    page = document[source_index]
                     longest = max(page.rect.width, page.rect.height)
                     scale = max_dimension / longest if longest else 1.0
                     pixmap = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False, colorspace=pymupdf.csRGB)
