@@ -64,7 +64,7 @@ def test_prepare_rejects_destination_that_contains_source(tmp_path: Path) -> Non
     assert source.is_file()
 
 
-def test_pdf_affinity_order_swaps_interior_spreads_and_omits_back_cover(tmp_path: Path) -> None:
+def test_pdf_affinity_order_includes_back_cover_and_adds_blank_filler(tmp_path: Path) -> None:
     pdf = tmp_path / "book.pdf"
     doc = pymupdf.open()
     gray_levels = [0.08, 0.20, 0.32, 0.44, 0.56, 0.68]
@@ -80,8 +80,8 @@ def test_pdf_affinity_order_swaps_interior_spreads_and_omits_back_cover(tmp_path
     for page in pages:
         pixel = Image.open(page).getpixel((50, 60))
         observed.append(pixel[0] if isinstance(pixel, tuple) else pixel)
-    expected = [round(gray_levels[index] * 255) for index in (0, 2, 1, 4, 3)]
-    assert len(observed) == 5
+    expected = [round(gray_levels[index] * 255) for index in (0, 2, 1, 4, 3, 5)] + [255]
+    assert len(observed) == 7
     assert all(abs(actual - wanted) <= 3 for actual, wanted in zip(observed, expected, strict=True))
 
 
