@@ -15,7 +15,7 @@ from .errors import ValidationError
 from .guid import unity_guid
 from .inputs import order_book_images
 from .manifest import Manifest, load_manifest
-from .prepare import pad_odd_content_with_blank, pdf_source_page_order, prepare
+from .prepare import pdf_source_page_order, prepare
 from .verify import Verification, verify_package
 from .ziputil import deterministic_zip
 
@@ -318,7 +318,8 @@ def build(manifest_path: Path | str) -> BuildResult:
         manifest.page_order, manifest.explicit_pages,
         manifest.source_back_cover,
     )
-    prepared = pad_odd_content_with_blank(prepared, manifest.max_dimension, manifest.jpeg_quality)
+    if (len(prepared) - 1) % 2:
+        raise ValidationError("Udon Magazine requires an even number of content pages")
     volume = _build_product(manifest, manifest.id, manifest.version, manifest.target_name, prepared)
     latest = _build_product(
         manifest, manifest.latest_id, manifest.latest_version, f"{manifest.target_name}_latest", prepared
@@ -332,6 +333,7 @@ def build(manifest_path: Path | str) -> BuildResult:
             manifest.source_path, manifest.source_cover, manifest.page_order, manifest.explicit_pages,
         )
         source_order = [path.name for path in ordered_sources[1:]]
+        cover_source_pages: list[str | int] = [ordered_sources[0].name]
         digest = hashlib.sha256()
         for path in ordered_sources:
             digest.update(path.name.encode("utf-8") + b"\0" + path.read_bytes())
@@ -341,12 +343,11 @@ def build(manifest_path: Path | str) -> BuildResult:
             ordered_pdf_pages = pdf_source_page_order(
                 document.page_count, manifest.page_order, manifest.source_back_cover
             )
+            cover_source_pages = [1, document.page_count] if manifest.source_back_cover else [1]
         source_order = [f"PDF page {index + 1}" for index in ordered_pdf_pages[1:]]
         source_sha256 = hashlib.sha256(manifest.source_path.read_bytes()).hexdigest()
-    filler_count = len(prepared) - 1 - len(source_order)
-    if filler_count not in {0, 1}:
+    if len(prepared) - 1 != len(source_order):
         raise ValidationError("generated page count does not match resolved source order")
-    display_order = [*source_order, *(["Blank filler"] * filler_count)]
     resolved = {
         **manifest.raw,
         "source": {**manifest.raw["source"], "type": "pdf" if manifest.source_path.is_file() else "images"},
@@ -357,13 +358,14 @@ def build(manifest_path: Path | str) -> BuildResult:
         "resolved": {
             "content_page_count": len(prepared) - 1, "volume_package": manifest.id,
             "latest_package": manifest.latest_id, "source_sha256": source_sha256,
-            "source_page_order": source_order, "generated_blank_pages": filler_count,
+            "cover_source_pages": cover_source_pages, "source_page_order": source_order,
         },
     }
     resolved_path = output / "resolved-manifest.yaml"
     resolved_path.write_text(yaml.safe_dump(resolved, sort_keys=False, allow_unicode=True), encoding="utf-8")
     contact = output / "contact-sheet.jpg"
-    _contact_sheet(prepared, ["Cover", *display_order], contact)
+    cover_label = "Cover atlas" if manifest.source_back_cover else "Cover"
+    _contact_sheet(prepared, [cover_label, *source_order], contact)
     (output / "README-latest.md").write_text(
         "# Latest package implementation\n\nThe MVP latest package is deliberately **self-contained** and duplicates the issue assets. "
         "This is robust when installed independently. A dependency-only alias may follow only after Unity validation.\n",

@@ -10,7 +10,7 @@ This zero-base pipeline turns a rights-approved PDF or ordered PNG/JPEG director
 
 The source is treated as read-only. Generated pages are JPEG, preserve aspect ratio, and use manifest-controlled `max_dimension` and `jpeg_quality`. For an image directory, declare the cover explicitly. `affinity_spreads` converts Affinity Publisher's `2,3,4,5...` files into Udon Magazine's historical `3,2,5,4...` content order; `explicit` accepts an exact filename list. The cover is used only by the cover material and is excluded from `pageTextures`.
 
-For a PDF exported as front cover, interior pages, and back cover, set `source.back_cover: true`. The final PDF page remains in `pageTextures` after the reordered interior. Because Udon Magazine requires an even `pageTextures` array, the builder appends one deterministic white filler page when necessary. With `page_order: affinity_spreads`, only the interior is reordered (`3,2,5,4...`); the back cover follows the final interior spread.
+For a PDF exported as front cover, interior pages, and back cover, set `source.back_cover: true`. Matching the established Platform packages, the builder combines PDF page 1 and the final PDF page into a horizontal cover atlas (front on the left, back on the right) for the cover material. `pageTextures` then contains only the interior in `3,2,5,4...` order. No blank page is inserted.
 
 Use separate versions for the two products. A fixed issue normally begins at `output.version: 1.0.0`. The shared `latest` package must advance for every issue, for example `output.latest_version: 16.0.0` for Vol.16 and `17.0.0` for Vol.17.
 
