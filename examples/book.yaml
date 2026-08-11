@@ -1,0 +1,23 @@
+id: net.omoi0kane.platform-magazine.vol16
+title: Platform Vol.16
+author: Platform Editorial Team
+source:
+  path: ./source/vol16
+  type: images
+  cover: vol16_cover.png
+  # Affinity Publisher由来の2ページ単位の並びを 3,2,5,4... に変換する。
+  # 通常PDFは natural、完全指定は explicit + pages を使う。
+  page_order: affinity_spreads
+output:
+  directory: ./dist/vol16
+  version: 1.0.0
+  latest_version: 16.0.0
+  latest_id: net.omoi0kane.platform-magazine.latest
+  target_name: Platform_vol16
+  max_dimension: 2048
+  jpeg_quality: 85
+  warning_size_mb: 100
+  hard_size_mb: 200
+rights:
+  redistribution_approved: true
+  statement: Publisher approved redistribution in the generated VPM packages.

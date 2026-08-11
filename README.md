@@ -1,38 +1,53 @@
-# ◆本パッケージは仮リリース中です◆
-* 現在、Vol.1-2・Vol.8-11（暫定版）、Vol.12-15・2023特別号・2024特別号（正式版）を公開しています
-* 今後、破壊的変更がある可能性があります。あらかじめご了承ください
+# Platform Magazine VPM Publishing Pipeline
 
-# メタバース写真旅行雑誌『Platform』VPM版
-公式HP：https://platformvr.github.io/
+メタバース写真旅行雑誌『Platform』の書籍データを、VRChat Worlds向けVPMパッケージへ決定論的に変換・検証・配信するリポジトリです。
 
-当ページは本誌をVRChatワールド内に手軽に設置・ご覧いただけるよう、VCC (VRChat Creator Companion)により頒布するものです。
-* 本誌の最新号や新版がアップデートにより自動で配信されます
-* 最新号（Latest）をワールドに設置いただくと、アップデートにより冊子が新号に自動で入れ替わります！
-* また特定の号を設置いただくことも可能です（新刊発刊時もアップデートはされません）
+> 現行`0.0.8`は制作途中のテスト成果物です。既存構造との互換性は維持せず、号別パッケージ方式へ移行しています。
 
-## 導入方法
-以下のページからVCCのレポジトリへ追加してください。  
-https://omoi0kane.github.io/platform-magazine/
+## 生成物
 
-なお動作にはUdon Magazineパッケージが必要です。以下のページよりVCCのリポジトリへ追加してください。  
-https://tsukina-7mochi.github.io/udon-magazine/
+1冊の入力から次の2パッケージを生成します。
 
-導入後、UnityのProject Managerから【Platform_】で「Package」内を検索し、お目当ての号のPrefabをHierarchyに配置してください。
-最新号を置いておきたい場合はlatest.prefabを配置してください。
-![image](https://github.com/user-attachments/assets/2e1d7550-37e1-4481-8d94-bc6aa90ef145)
+- 固定号：`net.omoi0kane.platform-magazine.volXX`
+- 最新号：`net.omoi0kane.platform-magazine.latest`
 
+`latest`は、Udon Behaviour値がPrefab Variantで失われた過去事例を避けるため、Unity実機検証が完了するまでは固定号と同じデータを持つ自己完結型です。
+固定号の`version`とは別に`latest_version`を持ち、新号ごとにLatestのversion/tagを進めます。
 
-## 注意点
-* ダウンロードサイズが大きいので注意してください。初回はファイル数が多く時間がかかりますが、2回目以降は早いはず
-* ALCOMでアップデートすると「破壊的変更が～」という注意書きが出ますが気にしなくてOKです
-* ~~最初のインポート時は軽量化のためのCrunch Compression処理が走るため、少し時間がかかります。ご承知おきください~~ 現在解消方向に向け努力中
+## クイックスタート
+
+```sh
+uv sync --frozen --all-groups
+uv run platform-book prepare books/volXX/book.yaml
+uv run platform-book build books/volXX/book.yaml
+uv run pytest
+```
+
+入力manifestの例は[`examples/book.yaml`](examples/book.yaml)、詳細手順は[`docs/publishing-workflow.md`](docs/publishing-workflow.md)を参照してください。
+
+## 安全性と公開gate
+
+- 原本PDF／画像は読み取り専用で扱います。
+- manifestには再頒布許諾の明示が必要です。
+- 出力先は管理markerがない既存ディレクトリを削除しません。
+- ページ順、GUID、`.meta`、Prefab参照、ZIP構造、サイズを検証します。
+- ZIPは固定timestamp・ソート済みentryで再現可能に生成します。
+- **Unity/VCCへのimport、Prefab動作、ページ送り、表示品質の確認が終わるまでReleaseしません。**
+- Release公開とVPM listing更新はユーザーの明示承認後に行います。
+
+## CI
+
+- `validate.yml`：PR／mainでロック済み環境から全テストを実行
+- `build-listing.yml`：公開済みGitHub ReleaseからVPM listingを再構築しGitHub Pagesへ配置
+
+## 配布先
+
+号別パッケージの初回検証・Release完了後、以下からVCCへ追加できるようにします。
+
+<https://omoi0kane.github.io/platform-magazine/>
+
+依存するUdon Magazine：<https://tsukina-7mochi.github.io/udon-magazine/>
 
 ## 利用規約
-利用規約に同意いただける場合のみご利用ください。  
-https://github.com/omoi0kane/platform-magazine?tab=License-1-ov-file  
-本データはVRChat等のワールドに設置し、再頒布されることを想定し、これを許可しています。  
-ただし本データの販売、印刷、および内容を変更した状態で再配布することを禁じます。内容を変更しない場合に限り、再配布が許可されます。また解像度の変更など著作物の内容に無関係な変更は可とします。
 
-## お問い合わせ先
-Platform編集部　https://x.com/PlatformVR  
-思惟かね　https://x.com/omoi0kane  
+本リポジトリの[`LICENSE`](LICENSE)を参照してください。生成VPMパッケージにも同じLICENSEを同梱します。

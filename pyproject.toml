@@ -1,0 +1,23 @@
+[project]
+name = "platform-book"
+version = "0.1.0"
+description = "Deterministic local VPM book package builder"
+requires-python = ">=3.11"
+dependencies = ["PyYAML>=6.0", "Pillow>=10.0", "PyMuPDF>=1.24"]
+
+[project.scripts]
+platform-book = "platform_book.cli:main"
+
+[dependency-groups]
+dev = ["jsonschema>=4.0", "pytest>=8.0", "ruff>=0.14"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/platform_book"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
