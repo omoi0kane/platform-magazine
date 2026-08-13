@@ -1,4 +1,6 @@
-# Local publishing workflow
+# Internal publishing workflow
+
+This document is for Platform Magazine maintainers. Package users should follow the public [README](../../README.md).
 
 This zero-base pipeline turns a rights-approved PDF or ordered PNG/JPEG directory into two deterministic VPM packages: a versioned issue and a `latest` issue.
 

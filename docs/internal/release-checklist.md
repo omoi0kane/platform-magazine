@@ -1,4 +1,6 @@
-# Release checklist
+# Internal release checklist
+
+Platform Magazine運営者向けの公開チェックリストです。一般利用者向けの導入方法は[README](../../README.md)を参照してください。
 
 ## 1. 入力固定
 

@@ -4,10 +4,11 @@ const LISTING_URL = "{{ listingInfo.Url }}";
 
 const PACKAGES = {
 {{~ for package in packages ~}}
+{{~ if package.Name != "net.omoi0kane.platform-magazine" ~}}
   "{{ package.Name }}": {
     name: "{{ package.Name }}",
     displayName: "{{ if package.DisplayName; package.DisplayName; end; }}",
-    description: "{{ if package.Description; package.Description; end; }}",
+    description: "VRChatワールドに設置して読めるPlatformの冊子です。",
     version: "{{ package.Version }}",
     author: {
       name: "{{ if package.Author.Name; package.Author.Name; end; }}",
@@ -26,6 +27,7 @@ const PACKAGES = {
     license: "{{ package.License }}",
     licensesUrl: "{{ package.LicensesUrl }}",
   },
+{{~ end ~}}
 {{~ end ~}}
 };
 

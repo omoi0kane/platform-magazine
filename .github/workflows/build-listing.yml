@@ -55,11 +55,42 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Remove obsolete test package from listing
+        run: |
+          PYTHONPATH=src python3 scripts/filter_vpm_listing.py \
+            "${LIST_PUBLISH_DIRECTORY}/index.json" \
+            --exclude net.omoi0kane.platform-magazine \
+            --public-description 'VRChatワールドに設置して読めるPlatformの冊子です。'
+
       - name: Validate generated site
         run: |
           test -s "${LIST_PUBLISH_DIRECTORY}/index.json"
           test -s "${LIST_PUBLISH_DIRECTORY}/index.html"
           python3 -m json.tool "${LIST_PUBLISH_DIRECTORY}/index.json" >/dev/null
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          packages = json.loads(Path("Website/index.json").read_text())["packages"]
+          expected = {
+              "net.omoi0kane.platform-magazine.latest",
+              *(f"net.omoi0kane.platform-magazine.vol{number:02d}" for number in range(1, 10)),
+              *(f"net.omoi0kane.platform-magazine.vol{number}" for number in range(10, 18)),
+              *(f"net.omoi0kane.platform-magazine.special{year}" for year in range(2023, 2026)),
+          }
+          assert "net.omoi0kane.platform-magazine" not in packages
+          assert expected <= packages.keys(), expected - packages.keys()
+          assert all(
+              manifest["description"] == "VRChatワールドに設置して読めるPlatformの冊子です。"
+              for package in packages.values()
+              for manifest in package["versions"].values()
+          )
+          PY
+          ! grep -Fq 'net.omoi0kane.platform-magazine-0.0.8' "${LIST_PUBLISH_DIRECTORY}/index.json"
+          ! grep -Fq 'data-package-id="net.omoi0kane.platform-magazine"' \
+            "${LIST_PUBLISH_DIRECTORY}/index.html"
+          ! grep -Fq '"net.omoi0kane.platform-magazine": {' \
+            "${LIST_PUBLISH_DIRECTORY}/app.js"
           grep -Fq 'vcc://vpm/addRepo' "${LIST_PUBLISH_DIRECTORY}/app.js"
           grep -Fq '@fluentui/web-components@2.6.1' "${LIST_PUBLISH_DIRECTORY}/app.js"
           grep -Fq '@fluentui/web-components@2.6.1' "${LIST_PUBLISH_DIRECTORY}/index.html"
