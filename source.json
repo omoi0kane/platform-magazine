@@ -6,7 +6,11 @@
     "url": "https://omoi0kane.github.io/platform-magazine/"
   },
   "url": "https://omoi0kane.github.io/platform-magazine/index.json",
-  "description": "VPM packages for Platform Magazine",
+  "description": "VRChatワールドで読めるメタバース写真旅行雑誌『Platform』",
+  "infoLink": {
+    "text": "導入方法・注意事項",
+    "url": "https://github.com/omoi0kane/platform-magazine#readme"
+  },
   "bannerUrl": "banner.png",
   "githubRepos": [
     "omoi0kane/platform-magazine"

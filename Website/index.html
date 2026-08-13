@@ -182,11 +182,12 @@
           </fluent-data-grid-cell>
         </fluent-data-grid-row>
         {{~ for package in packages ~}}
+          {{~ if package.Name != "net.omoi0kane.platform-magazine" ~}}
           <fluent-data-grid-row data-package-name="{{ package.DisplayName }}" data-package-id="{{ package.Name }}">
             <fluent-data-grid-cell grid-column="1">
               <div class="col">
                 <div class="packageName">{{ package.DisplayName }}</div>
-                <div class="caption1">{{ package.Description }}</div>
+                <div class="caption1">VRChatワールドに設置して読める『Platform』の冊子です。</div>
                 <div class="caption2">{{ package.Name }}</div>
               </div>
             </fluent-data-grid-cell>
@@ -207,6 +208,7 @@
               </fluent-button>
             </fluent-data-grid-cell>
           </fluent-data-grid-row>
+          {{~ end ~}}
         {{~ end ~}}
       </fluent-data-grid>
     </fluent-card>
