@@ -152,7 +152,10 @@ def test_build_images_produces_self_contained_active_packages_and_artifacts(tmp_
         assert prefab.count("- {fileID: 2800000, guid:") == 4
         assert "Platform Vol.16" in prefab
         assert "Platform Editors" in prefab
+        assert "  version: 1\n" in prefab
+        assert "  proximity: 0.1\n" in prefab
         material = next((product.package_dir / "Runtime/materials").glob("*.mat")).read_text()
+        assert "  m_Name: cover\n" in material
         cover_guid = unity_guid(product.package_id, "Runtime/cover.jpg")
         assert cover_guid in material
         assert package["vpmDependencies"]["net.ts7m.udon-magazine"] == "0.2.0"
@@ -183,6 +186,33 @@ def test_broken_prefab_page_guid_is_detected(tmp_path: Path) -> None:
     valid = unity_guid(result.volume.package_id, "Runtime/pages/page_001.jpg")
     prefab_path.write_text(text.replace(valid, "f" * 32, 1))
     with pytest.raises(ValidationError, match="does not resolve"):
+        verify_package(result.volume.package_dir)
+
+
+@pytest.mark.parametrize(
+    ("old", "message"),
+    [
+        ("  version: 1\n", "VRC Pickup is not Version 1.1"),
+        ("  proximity: 0.1\n", "VRC Pickup proximity is not 0.1"),
+    ],
+)
+def test_pickup_defaults_are_verified(tmp_path: Path, old: str, message: str) -> None:
+    source = tmp_path / "source"
+    sample_images(source)
+    result = build(write_manifest(tmp_path, manifest_data(source, tmp_path / "dist")))
+    prefab_path = next((result.volume.package_dir / "Runtime").glob("*.prefab"))
+    prefab_path.write_text(prefab_path.read_text().replace(old, "", 1))
+    with pytest.raises(ValidationError, match=message):
+        verify_package(result.volume.package_dir)
+
+
+def test_material_main_object_name_is_verified(tmp_path: Path) -> None:
+    source = tmp_path / "source"
+    sample_images(source)
+    result = build(write_manifest(tmp_path, manifest_data(source, tmp_path / "dist")))
+    material = next((result.volume.package_dir / "Runtime/materials").glob("*.mat"))
+    material.write_text(material.read_text().replace("  m_Name: cover\n", "  m_Name: wrong\n"))
+    with pytest.raises(ValidationError, match="main object name"):
         verify_package(result.volume.package_dir)
 
 

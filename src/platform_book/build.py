@@ -149,7 +149,7 @@ TextureImporter:
     return f"fileFormatVersion: 2\nguid: {guid}\n{importer}:\n  externalObjects: {{}}{main}\n  userData:\n  assetBundleName:\n  assetBundleVariant:\n"
 
 
-def _material(name: str, cover_guid: str) -> str:
+def _material(cover_guid: str) -> str:
     return f"""%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!21 &2100000
@@ -159,7 +159,7 @@ Material:
   m_CorrespondingSourceObject: {{fileID: 0}}
   m_PrefabInstance: {{fileID: 0}}
   m_PrefabAsset: {{fileID: 0}}
-  m_Name: {name}_cover
+  m_Name: cover
   m_Shader: {{fileID: 46, guid: 0000000000000000f000000000000000, type: 0}}
   m_Parent: {{fileID: 0}}
   m_ModifiedSerializedProperties: 0
@@ -200,6 +200,19 @@ def _prefab(package_id: str, target_name: str, title: str, author: str, page_gui
     if count != 1:
         raise RuntimeError("reference prefab pageTextures block was not found")
     text = text.replace("e837be709b762d4438d25a62f26bfe25", material_guid)
+    text, version_count = re.subn(
+        r"(^  m_Script: \{fileID: 1804438810, guid: 661092b4961be7145bfbe56e1e62337b, type: 3\}\n"
+        r"  m_Name:.*\n  m_EditorClassIdentifier:.*\n)",
+        r"\1  version: 1\n",
+        text,
+        count=1,
+        flags=re.MULTILINE,
+    )
+    if version_count != 1:
+        raise RuntimeError("reference prefab VRC Pickup component was not found")
+    text, proximity_count = re.subn(r"^  proximity: 2$", "  proximity: 0.1", text, count=1, flags=re.MULTILINE)
+    if proximity_count != 1:
+        raise RuntimeError("reference prefab VRC Pickup proximity was not found")
     return text
 
 
@@ -235,7 +248,7 @@ def _build_product(
 
     material_relative = "Runtime/materials/cover.mat"
     material_guid = unity_guid(package_id, material_relative)
-    (package / material_relative).write_text(_material(target_name, cover_guid), encoding="utf-8")
+    (package / material_relative).write_text(_material(cover_guid), encoding="utf-8")
     _write_meta(package, material_relative, "NativeFormatImporter")
     prefab_relative = f"Runtime/{target_name}.prefab"
     prefab_path = (package / prefab_relative).resolve()

@@ -89,6 +89,19 @@ def verify_package(package_dir: Path | str, zip_path: Path | str | None = None) 
     )
     if not root_block or root_block.group(1) != "1":
         _fail("generated prefab root is not active")
+    pickup = re.search(
+        r"^  m_Script: \{fileID: 1804438810, guid: 661092b4961be7145bfbe56e1e62337b, type: 3\}$"
+        r"(?:(?!^--- !u!).)*",
+        prefab,
+        re.MULTILINE | re.DOTALL,
+    )
+    if pickup is None:
+        _fail("generated prefab has no supported VRC Pickup component")
+    pickup_text = pickup.group(0)
+    if re.search(r"^  version: 1$", pickup_text, re.MULTILINE) is None:
+        _fail("generated prefab VRC Pickup is not Version 1.1")
+    if re.search(r"^  proximity: 0\.1$", pickup_text, re.MULTILINE) is None:
+        _fail("generated prefab VRC Pickup proximity is not 0.1")
     page_guids = _PAGE_REF.findall(prefab)
     if len(page_guids) != len(pages):
         _fail(f"prefab page GUID count {len(page_guids)} does not match page count {len(pages)}")
@@ -118,7 +131,10 @@ def verify_package(package_dir: Path | str, zip_path: Path | str | None = None) 
         _fail("generated cover image is missing")
     cover_meta = cover.with_name(cover.name + ".meta").read_text(encoding="utf-8")
     cover_guid_match = re.search(r"^guid: ([0-9a-f]{32})$", cover_meta, re.MULTILINE)
-    if cover_guid_match is None or cover_guid_match.group(1) not in material.read_text(encoding="utf-8"):
+    material_text = material.read_text(encoding="utf-8")
+    if re.search(rf"^  m_Name: {re.escape(material.stem)}$", material_text, re.MULTILINE) is None:
+        _fail("generated material main object name does not match its asset filename")
+    if cover_guid_match is None or cover_guid_match.group(1) not in material_text:
         _fail("generated material does not reference the cover image")
     if not (root / "LICENSE").is_file():
         _fail("generated package is missing LICENSE")
