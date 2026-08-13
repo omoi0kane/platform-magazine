@@ -61,6 +61,8 @@ jobs:
           test -s "${LIST_PUBLISH_DIRECTORY}/index.html"
           python3 -m json.tool "${LIST_PUBLISH_DIRECTORY}/index.json" >/dev/null
           grep -Fq 'vcc://vpm/addRepo' "${LIST_PUBLISH_DIRECTORY}/app.js"
+          grep -Fq '@fluentui/web-components@2.6.1' "${LIST_PUBLISH_DIRECTORY}/app.js"
+          grep -Fq '@fluentui/web-components@2.6.1' "${LIST_PUBLISH_DIRECTORY}/index.html"
           grep -Fq 'https://omoi0kane.github.io/platform-magazine/index.json' \
             "${LIST_PUBLISH_DIRECTORY}/index.html"
 
