@@ -1,0 +1,14 @@
+{
+  "name": "Platform Magazine Listing",
+  "id": "net.omoi0kane.platform-magazine.listing",
+  "author": {
+    "name": "Omoi Kane",
+    "url": "https://omoi0kane.github.io/platform-magazine/"
+  },
+  "url": "https://omoi0kane.github.io/platform-magazine/index.json",
+  "description": "VPM packages for Platform Magazine",
+  "bannerUrl": "banner.png",
+  "githubRepos": [
+    "omoi0kane/platform-magazine"
+  ]
+}
