@@ -7,7 +7,7 @@
 - [ ] `latest_version`が過去のLatest Releaseより新しく、tagが衝突しない
 - [ ] 再頒布許諾を確認し、manifestへ記録した
 - [ ] 表紙ファイルを明示した
-- [ ] `natural` / `affinity_spreads` / `explicit`のページ順を選んだ
+- [ ] `natural` / `affinity_spreads` / `affinity_spread_pages` / `explicit`のページ順を選んだ
 
 ## 2. ローカル生成・検証
 
