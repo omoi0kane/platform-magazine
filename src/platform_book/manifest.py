@@ -111,8 +111,10 @@ def load_manifest(path: Path | str) -> Manifest:
     if not isinstance(source_back_cover, bool):
         raise ManifestError("source.back_cover must be true or false")
     page_order = source.get("page_order", "natural")
-    if page_order not in {"natural", "affinity_spreads", "explicit"}:
-        raise ManifestError("source.page_order must be one of: natural, affinity_spreads, explicit")
+    if page_order not in {"natural", "affinity_spreads", "affinity_spread_pages", "explicit"}:
+        raise ManifestError(
+            "source.page_order must be one of: natural, affinity_spreads, affinity_spread_pages, explicit"
+        )
     raw_pages = source.get("pages", [])
     if not isinstance(raw_pages, list) or any(not isinstance(item, str) or not item for item in raw_pages):
         raise ManifestError("source.pages must be a list of filenames")

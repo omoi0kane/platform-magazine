@@ -93,6 +93,65 @@ def test_pdf_affinity_order_builds_cover_atlas_and_orders_only_interior(tmp_path
     assert all(abs(actual - wanted) <= 3 for actual, wanted in zip(observed, expected, strict=True))
 
 
+def test_pdf_affinity_spread_pages_splits_each_wide_interior_right_then_left(tmp_path: Path) -> None:
+    pdf = tmp_path / "book.pdf"
+    doc = pymupdf.open()
+    front = doc.new_page(width=100, height=120)
+    front.draw_rect(front.rect, color=(0.1, 0.1, 0.1), fill=(0.1, 0.1, 0.1))
+    spread = doc.new_page(width=200, height=120)
+    spread.draw_rect(pymupdf.Rect(0, 0, 100, 120), color=(0.25, 0.25, 0.25), fill=(0.25, 0.25, 0.25))
+    spread.draw_rect(pymupdf.Rect(100, 0, 200, 120), color=(0.75, 0.75, 0.75), fill=(0.75, 0.75, 0.75))
+    back = doc.new_page(width=100, height=120)
+    back.draw_rect(back.rect, color=(0.9, 0.9, 0.9), fill=(0.9, 0.9, 0.9))
+    doc.save(pdf)
+
+    pages = prepare(
+        pdf, tmp_path / "prepared", max_dimension=120, quality=95,
+        page_order="affinity_spread_pages", back_cover=True,
+    )
+
+    assert len(pages) == 3
+    assert Image.open(pages[0]).size == (200, 120)
+    assert Image.open(pages[1]).size == (100, 120)
+    assert Image.open(pages[2]).size == (100, 120)
+    right_pixel = Image.open(pages[1]).getpixel((50, 60))
+    left_pixel = Image.open(pages[2]).getpixel((50, 60))
+    right = right_pixel[0] if isinstance(right_pixel, tuple) else right_pixel
+    left = left_pixel[0] if isinstance(left_pixel, tuple) else left_pixel
+    assert isinstance(right, (int, float)) and isinstance(left, (int, float))
+    assert abs(right - round(0.75 * 255)) <= 3
+    assert abs(left - round(0.25 * 255)) <= 3
+
+
+def test_pdf_affinity_spread_pages_rejects_single_page_interior(tmp_path: Path) -> None:
+    pdf = tmp_path / "book.pdf"
+    doc = pymupdf.open()
+    for _ in range(3):
+        doc.new_page(width=100, height=120)
+    doc.save(pdf)
+    with pytest.raises(InputError, match="wide spread"):
+        prepare(
+            pdf, tmp_path / "prepared", page_order="affinity_spread_pages", back_cover=True,
+        )
+
+
+def test_pdf_affinity_spread_pages_assigns_odd_center_column_once(tmp_path: Path) -> None:
+    pdf = tmp_path / "book.pdf"
+    doc = pymupdf.open()
+    doc.new_page(width=100, height=120)
+    doc.new_page(width=201, height=120)
+    doc.new_page(width=100, height=120)
+    doc.save(pdf)
+    pages = prepare(
+        pdf, tmp_path / "prepared", max_dimension=120, quality=95,
+        page_order="affinity_spread_pages", back_cover=True,
+    )
+    right_size = Image.open(pages[1]).size
+    left_size = Image.open(pages[2]).size
+    assert sorted((right_size[0], left_size[0])) == [100, 101]
+    assert right_size[0] + left_size[0] == 201
+
+
 def test_cli_reports_manifest_errors_cleanly(tmp_path: Path) -> None:
     manifest = tmp_path / "bad.yaml"
     manifest.write_text(yaml.safe_dump({"id": "x"}))

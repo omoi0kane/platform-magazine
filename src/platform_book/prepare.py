@@ -24,8 +24,11 @@ def pdf_source_page_order(page_count: int, page_order: str, back_cover: bool) ->
         if len(body) % 2:
             raise InputError("affinity_spreads requires an even number of interior PDF pages")
         body = [page for index in range(0, len(body), 2) for page in body[index:index + 2][::-1]]
+    elif page_order == "affinity_spread_pages":
+        if not back_cover:
+            raise InputError("affinity_spread_pages requires source.back_cover: true")
     elif page_order != "natural":
-        raise InputError("PDF sources support natural or affinity_spreads page order")
+        raise InputError("PDF sources support natural, affinity_spreads, or affinity_spread_pages page order")
     return [0, *body]
 
 
@@ -55,6 +58,24 @@ def _cover_atlas(front: Image.Image, back: Image.Image) -> Image.Image:
     atlas.paste(front, (0, (height - front.height) // 2))
     atlas.paste(back, (front.width, (height - back.height) // 2))
     return atlas
+
+
+def _render_pdf_spread(page: pymupdf.Page, max_dimension: int) -> tuple[Image.Image, Image.Image]:
+    """Render a Japanese spread at full per-page resolution, returning right then left."""
+    if page.rect.width <= page.rect.height:
+        raise InputError("affinity_spread_pages requires every interior PDF page to be a wide spread")
+    half_longest = max(page.rect.width / 2, page.rect.height)
+    scale = max_dimension / half_longest if half_longest else 1.0
+    pixmap = page.get_pixmap(
+        matrix=pymupdf.Matrix(scale, scale), alpha=False, colorspace=pymupdf.csRGB,
+    )
+    spread = Image.frombytes("RGB", (pixmap.width, pixmap.height), pixmap.samples)
+    midpoint = spread.width // 2
+    left = spread.crop((0, 0, midpoint, spread.height))
+    right = spread.crop((midpoint, 0, spread.width, spread.height))
+    if abs(right.width - left.width) > 1:
+        raise InputError("interior PDF spread cannot be split into equal left/right pages")
+    return right, left
 
 
 def prepare(
@@ -117,9 +138,19 @@ def prepare(
                     start = 2
                 else:
                     start = 1
-                for index, source_index in enumerate(source_pages, start):
-                    image = _render_pdf_page(document[source_index], max_dimension)
-                    _save_jpeg(image, destination / f"page_{index:03d}.jpg", max_dimension, quality)
+                next_index = start
+                for source_index in source_pages:
+                    source_page = document[source_index]
+                    output_images = (
+                        _render_pdf_spread(source_page, max_dimension)
+                        if page_order == "affinity_spread_pages"
+                        else (_render_pdf_page(source_page, max_dimension),)
+                    )
+                    for output_image in output_images:
+                        _save_jpeg(
+                            output_image, destination / f"page_{next_index:03d}.jpg", max_dimension, quality,
+                        )
+                        next_index += 1
             finally:
                 document.close()
         elif is_images:

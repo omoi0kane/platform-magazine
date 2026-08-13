@@ -357,7 +357,14 @@ def build(manifest_path: Path | str) -> BuildResult:
                 document.page_count, manifest.page_order, manifest.source_back_cover
             )
             cover_source_pages = [1, document.page_count] if manifest.source_back_cover else [1]
-        source_order = [f"PDF page {index + 1}" for index in ordered_pdf_pages[1:]]
+        if manifest.page_order == "affinity_spread_pages":
+            source_order = [
+                f"PDF page {index + 1} ({side})"
+                for index in ordered_pdf_pages[1:]
+                for side in ("right", "left")
+            ]
+        else:
+            source_order = [f"PDF page {index + 1}" for index in ordered_pdf_pages[1:]]
         source_sha256 = hashlib.sha256(manifest.source_path.read_bytes()).hexdigest()
     if len(prepared) - 1 != len(source_order):
         raise ValidationError("generated page count does not match resolved source order")

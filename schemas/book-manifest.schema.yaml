@@ -16,7 +16,7 @@ properties:
       type: {enum: [auto, pdf, images]}
       cover: {type: string, minLength: 1}
       back_cover: {type: boolean}
-      page_order: {enum: [natural, affinity_spreads, explicit]}
+      page_order: {enum: [natural, affinity_spreads, affinity_spread_pages, explicit]}
       pages:
         type: array
         minItems: 1
