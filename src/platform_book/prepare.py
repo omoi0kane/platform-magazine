@@ -64,22 +64,18 @@ def _render_pdf_spread(page: pymupdf.Page, max_dimension: int) -> tuple[Image.Im
     """Render a Japanese spread at full per-page resolution, returning right then left."""
     if page.rect.width <= page.rect.height:
         raise InputError("affinity_spread_pages requires every interior PDF page to be a wide spread")
-    midpoint = page.rect.x0 + page.rect.width / 2
-    clips = (
-        pymupdf.Rect(midpoint, page.rect.y0, page.rect.x1, page.rect.y1),
-        pymupdf.Rect(page.rect.x0, page.rect.y0, midpoint, page.rect.y1),
+    half_longest = max(page.rect.width / 2, page.rect.height)
+    scale = max_dimension / half_longest if half_longest else 1.0
+    pixmap = page.get_pixmap(
+        matrix=pymupdf.Matrix(scale, scale), alpha=False, colorspace=pymupdf.csRGB,
     )
-    images: list[Image.Image] = []
-    for clip in clips:
-        longest = max(clip.width, clip.height)
-        scale = max_dimension / longest if longest else 1.0
-        pixmap = page.get_pixmap(
-            matrix=pymupdf.Matrix(scale, scale), clip=clip, alpha=False, colorspace=pymupdf.csRGB,
-        )
-        images.append(Image.frombytes("RGB", (pixmap.width, pixmap.height), pixmap.samples))
-    if abs(images[0].width - images[1].width) > 1:
+    spread = Image.frombytes("RGB", (pixmap.width, pixmap.height), pixmap.samples)
+    midpoint = spread.width // 2
+    left = spread.crop((0, 0, midpoint, spread.height))
+    right = spread.crop((midpoint, 0, spread.width, spread.height))
+    if abs(right.width - left.width) > 1:
         raise InputError("interior PDF spread cannot be split into equal left/right pages")
-    return images[0], images[1]
+    return right, left
 
 
 def prepare(

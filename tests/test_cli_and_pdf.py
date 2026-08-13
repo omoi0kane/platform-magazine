@@ -135,6 +135,23 @@ def test_pdf_affinity_spread_pages_rejects_single_page_interior(tmp_path: Path) 
         )
 
 
+def test_pdf_affinity_spread_pages_assigns_odd_center_column_once(tmp_path: Path) -> None:
+    pdf = tmp_path / "book.pdf"
+    doc = pymupdf.open()
+    doc.new_page(width=100, height=120)
+    doc.new_page(width=201, height=120)
+    doc.new_page(width=100, height=120)
+    doc.save(pdf)
+    pages = prepare(
+        pdf, tmp_path / "prepared", max_dimension=120, quality=95,
+        page_order="affinity_spread_pages", back_cover=True,
+    )
+    right_size = Image.open(pages[1]).size
+    left_size = Image.open(pages[2]).size
+    assert sorted((right_size[0], left_size[0])) == [100, 101]
+    assert right_size[0] + left_size[0] == 201
+
+
 def test_cli_reports_manifest_errors_cleanly(tmp_path: Path) -> None:
     manifest = tmp_path / "bad.yaml"
     manifest.write_text(yaml.safe_dump({"id": "x"}))
