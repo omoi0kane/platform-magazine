@@ -62,6 +62,13 @@ jobs:
             --exclude net.omoi0kane.platform-magazine \
             --public-description 'VRChatワールドに設置して読めるPlatformの冊子です。'
 
+      - name: Build grouped public listings
+        run: |
+          PYTHONPATH=src python3 scripts/build_group_listings.py \
+            "${LIST_PUBLISH_DIRECTORY}/index.json" \
+            "${LIST_PUBLISH_DIRECTORY}/listings" \
+            --base-url https://omoi0kane.github.io/platform-magazine
+
       - name: Validate generated site
         run: |
           test -s "${LIST_PUBLISH_DIRECTORY}/index.json"
@@ -69,7 +76,11 @@ jobs:
           python3 -m json.tool "${LIST_PUBLISH_DIRECTORY}/index.json" >/dev/null
           python3 - <<'PY'
           import json
+          import sys
           from pathlib import Path
+
+          sys.path.insert(0, "src")
+          from platform_book.listing import LISTING_GROUPS, group_slug_for_package
 
           packages = json.loads(Path("Website/index.json").read_text())["packages"]
           expected = {
@@ -85,6 +96,21 @@ jobs:
               for package in packages.values()
               for manifest in package["versions"].values()
           )
+
+          groups = {group.slug: set() for group in LISTING_GROUPS}
+          for package_id in packages:
+              groups[group_slug_for_package(package_id)].add(package_id)
+          grouped_packages = []
+          listing_ids = set()
+          for slug, expected_packages in groups.items():
+              grouped = json.loads(Path(f"Website/listings/{slug}.json").read_text())
+              assert set(grouped["packages"]) == expected_packages
+              assert grouped["url"] == f"https://omoi0kane.github.io/platform-magazine/listings/{slug}.json"
+              grouped_packages.extend(grouped["packages"])
+              listing_ids.add(grouped["id"])
+          assert len(listing_ids) == 6
+          assert len(grouped_packages) == len(set(grouped_packages)) == len(packages)
+          assert set(grouped_packages) == set(packages)
           PY
           ! grep -Fq 'net.omoi0kane.platform-magazine-0.0.8' "${LIST_PUBLISH_DIRECTORY}/index.json"
           ! grep -Fq 'data-package-id="net.omoi0kane.platform-magazine"' \
@@ -96,6 +122,11 @@ jobs:
           grep -Fq '@fluentui/web-components@2.6.1' "${LIST_PUBLISH_DIRECTORY}/index.html"
           grep -Fq 'https://omoi0kane.github.io/platform-magazine/index.json' \
             "${LIST_PUBLISH_DIRECTORY}/index.html"
+          for slug in latest vol01-05 vol06-10 vol11-15 vol16-20 special; do
+            test -s "${LIST_PUBLISH_DIRECTORY}/listings/${slug}.json"
+            grep -Fq "listings/${slug}.json" "${LIST_PUBLISH_DIRECTORY}/index.html"
+            grep -Fq "listings/${slug}.json" "${LIST_PUBLISH_DIRECTORY}/app.js"
+          done
 
       - name: Configure Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5

@@ -1,6 +1,26 @@
 import { baseLayerLuminance, StandardLuminance } from 'https://unpkg.com/@fluentui/web-components@2.6.1';
 
-const LISTING_URL = "{{ listingInfo.Url }}";
+const GROUP_LISTINGS = {
+  latest: 'https://omoi0kane.github.io/platform-magazine/listings/latest.json',
+  'vol01-05': 'https://omoi0kane.github.io/platform-magazine/listings/vol01-05.json',
+  'vol06-10': 'https://omoi0kane.github.io/platform-magazine/listings/vol06-10.json',
+  'vol11-15': 'https://omoi0kane.github.io/platform-magazine/listings/vol11-15.json',
+  'vol16-20': 'https://omoi0kane.github.io/platform-magazine/listings/vol16-20.json',
+  special: 'https://omoi0kane.github.io/platform-magazine/listings/special.json',
+};
+
+const listingUrlForPackage = (packageId) => {
+  if (packageId === 'net.omoi0kane.platform-magazine.latest') return GROUP_LISTINGS.latest;
+  if (packageId.startsWith('net.omoi0kane.platform-magazine.special')) return GROUP_LISTINGS.special;
+  const match = packageId.match(/^net\.omoi0kane\.platform-magazine\.vol(\d{2})$/);
+  if (!match) throw new Error(`Package is not assigned to a grouped listing: ${packageId}`);
+  const volume = Number(match[1]);
+  if (volume <= 5) return GROUP_LISTINGS['vol01-05'];
+  if (volume <= 10) return GROUP_LISTINGS['vol06-10'];
+  if (volume <= 15) return GROUP_LISTINGS['vol11-15'];
+  if (volume <= 20) return GROUP_LISTINGS['vol16-20'];
+  throw new Error(`Volume is outside the supported range: ${packageId}`);
+};
 
 const PACKAGES = {
 {{~ for package in packages ~}}
@@ -68,14 +88,18 @@ const setTheme = () => {
     });
   });
 
-  const urlBarHelpButton = document.getElementById('urlBarHelp');
   const addListingToVccHelp = document.getElementById('addListingToVccHelp');
-  urlBarHelpButton.addEventListener('click', () => {
-    addListingToVccHelp.hidden = false;
-  });
   const addListingToVccHelpClose = document.getElementById('addListingToVccHelpClose');
   addListingToVccHelpClose.addEventListener('click', () => {
     addListingToVccHelp.hidden = true;
+  });
+
+  const groupAddToVccButtons = document.querySelectorAll('.groupAddToVccButton');
+  groupAddToVccButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const listingUrl = button.dataset.listingUrl;
+      window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(listingUrl)}`);
+    });
   });
 
   const vccListingInfoUrlFieldCopy = document.getElementById('vccListingInfoUrlFieldCopy');
@@ -89,19 +113,6 @@ const setTheme = () => {
     }, 1000);
   });
 
-  const vccAddRepoButton = document.getElementById('vccAddRepoButton');
-  vccAddRepoButton.addEventListener('click', () => window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`));
-
-  const vccUrlFieldCopy = document.getElementById('vccUrlFieldCopy');
-  vccUrlFieldCopy.addEventListener('click', () => {
-    const vccUrlField = document.getElementById('vccUrlField');
-    vccUrlField.select();
-    navigator.clipboard.writeText(vccUrlField.value);
-    vccUrlFieldCopy.appearance = 'accent';
-    setTimeout(() => {
-      vccUrlFieldCopy.appearance = 'neutral';
-    }, 1000);
-  });
 
   const rowMoreMenu = document.getElementById('rowMoreMenu');
   const hideRowMoreMenu = e => {
@@ -157,7 +168,10 @@ const setTheme = () => {
 
   const rowAddToVccButtons = document.querySelectorAll('.rowAddToVccButton');
   rowAddToVccButtons.forEach((button) => {
-    button.addEventListener('click', () => window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`));
+    button.addEventListener('click', () => {
+      const listingUrl = listingUrlForPackage(button.dataset.packageId);
+      window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(listingUrl)}`);
+    });
   });
 
   const rowPackageInfoButton = document.querySelectorAll('.rowPackageInfoButton');
@@ -176,6 +190,9 @@ const setTheme = () => {
       packageInfoDescription.textContent = packageInfo.description;
       packageInfoAuthor.textContent = packageInfo.author.name;
       packageInfoAuthor.href = packageInfo.author.url;
+      const groupedListingUrl = listingUrlForPackage(packageId);
+      document.getElementById('packageInfoVccUrlField').value = groupedListingUrl;
+      document.getElementById('vccListingInfoUrlField').value = groupedListingUrl;
 
       if ((packageInfo.keywords?.length ?? 0) === 0) {
         packageInfoKeywords.parentElement.classList.add('hidden');

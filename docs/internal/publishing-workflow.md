@@ -50,3 +50,13 @@ Local validation checks manifest/domain rules, rights, page continuity and order
 `stage-release` is a dry-run unless `--execute` is supplied. Execution creates two **draft** GitHub Releases only; it never publishes them. Public release still requires the checklist and explicit user approval.
 
 Tags are package-specific (`vol16-v1.0.0`, `latest-v16.0.0`). Neither version/tag may be reused.
+
+## Grouped public listings
+
+The root `index.json` remains an all-current-packages compatibility listing for users who registered the original URL. The public page advertises six non-overlapping listing files generated under `Website/listings/`:
+
+- `latest.json`: moving `latest` package only;
+- `vol01-05.json`, `vol06-10.json`, `vol11-15.json`, `vol16-20.json`: fixed issues by range;
+- `special.json`: annual special issues.
+
+`scripts/build_group_listings.py` assigns package IDs fail-closed. Unknown package IDs and fixed volumes outside Vol.1–20 stop publication. Every package in the curated root listing must appear in exactly one grouped listing. When publishing Vol.18–20, the existing range logic includes it automatically; a future Vol.21 requires an explicit grouping decision and code change.

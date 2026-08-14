@@ -22,21 +22,37 @@ Udon Magazineは本誌の表示とページ送りに使用します。先にUdon
 ## 導入手順
 
 1. [Udon Magazineの配布ページ](https://tsukina-7mochi.github.io/udon-magazine/)を開き、VPMリポジトリをVCCへ追加します。
-2. [Platform Magazineの配布ページ](https://omoi0kane.github.io/platform-magazine/)を開き、**Add to VCC**を押します。
-3. VCCで内容を確認し、リポジトリの追加を承認します。
+2. [Platform Magazineの配布ページ](https://omoi0kane.github.io/platform-magazine/)を開き、必要な号の範囲を選びます。
+3. 選んだ範囲の **VCCへ追加** を押し、VCCでリポジトリの追加を承認します。複数の範囲を追加することもできます。
 4. VCCの **Projects** から対象のWorldsプロジェクトを選び、**Manage Project**を開きます。
 5. **Platform**で検索し、設置したいパッケージの **＋** を押します。
-   - 常に最新号を利用したい場合：名前に`Latest`を含むパッケージ
-   - 特定の号を固定して利用したい場合：目的のVol.番号または特別号
+   - 常に最新号を利用したい場合：**最新号**listingから、名前に`Latest`を含むパッケージ
+   - 特定の号を固定して利用したい場合：該当するVol.範囲または特別号listingから目的の号
 6. Unityでプロジェクトを開き、Projectウィンドウの **Packages** から追加したPlatform Magazineパッケージを開きます。
 7. `Runtime`内の`Platform_...prefab`を、ワールドのHierarchyへドラッグ＆ドロップします。
 8. UnityのPlay ModeまたはVRChat上で、表紙・ページ送り・Pickup操作を確認してください。
 
-VCCから自動で開けない場合は、VCCの **Settings → Packages → Add Repository** に次のURLを入力してください。
+listingをVCCへ追加しただけでは、冊子データはプロジェクトへインストールされません。実際に使用する号だけをManage Projectから追加してください。
 
-```text
-https://omoi0kane.github.io/platform-magazine/index.json
-```
+### 手動追加用Listing URL
+
+VCCから自動で開けない場合は、VCCの **Settings → Packages → Add Repository** に必要なURLを入力してください。
+
+| 導入単位 | Listing URL |
+|---|---|
+| 最新号 | `https://omoi0kane.github.io/platform-magazine/listings/latest.json` |
+| Vol.1–5 | `https://omoi0kane.github.io/platform-magazine/listings/vol01-05.json` |
+| Vol.6–10 | `https://omoi0kane.github.io/platform-magazine/listings/vol06-10.json` |
+| Vol.11–15 | `https://omoi0kane.github.io/platform-magazine/listings/vol11-15.json` |
+| Vol.16–20 | `https://omoi0kane.github.io/platform-magazine/listings/vol16-20.json` |
+| 特別号 | `https://omoi0kane.github.io/platform-magazine/listings/special.json` |
+
+### 以前の全号listingを登録している場合
+
+1. 先に、現在利用している号を含む新しいgroup listingを追加します。
+2. VCCの **Settings → Packages** で旧`https://omoi0kane.github.io/platform-magazine/index.json`を削除します。
+
+この操作だけでUnityプロジェクトへ導入済みの冊子packageが自動削除されることはありません。対応するgroup listingを先に追加することで、以後もVCC上で更新情報を取得できます。
 
 ## パッケージの選び方
 

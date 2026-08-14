@@ -38,6 +38,73 @@ body {
   margin: 0 auto;
 }
 
+.listingGroups {
+  width: 90%;
+  margin: 1.5rem auto 1rem;
+}
+
+.listingGroups h2 {
+  text-align: center;
+  margin-bottom: 0.35rem;
+}
+
+.groupIntro,
+.migrationNote {
+  text-align: center;
+}
+
+.listingGroupGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin: 1rem 0;
+}
+
+.listingGroupCard {
+  position: relative;
+  min-height: 190px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.listingGroupCard h3,
+.listingGroupCard p {
+  margin: 0;
+}
+
+.listingGroupCard p {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.listingGroupCard code {
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+  color: var(--neutral-foreground-hover);
+}
+
+.listingGroupCard fluent-button {
+  align-self: stretch;
+}
+
+.featuredGroup {
+  outline: 2px solid var(--accent-fill-rest);
+}
+
+.groupLabel {
+  position: absolute;
+  top: -0.6rem;
+  right: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--accent-fill-rest);
+  color: var(--foreground-on-accent-rest);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .align-items-center {
   align-items: center;
 }
@@ -353,4 +420,18 @@ h1 {
 
 .flex-1 {
   flex: 1;
+}
+
+@media (max-width: 760px) {
+  .listingGroupGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .listingGroupCard {
+    min-height: 165px;
+  }
+
+  .vccUrlField {
+    min-width: 0;
+  }
 }
